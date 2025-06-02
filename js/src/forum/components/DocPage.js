@@ -1,106 +1,110 @@
-import Component from 'flarum/common/Component';
-import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import DocumentMeta from 'flarum/common/utils/DocumentMeta';
-import Markdown from 'flarum/common/utils/Markdown';
+import Page from 'flarum/common/components/Page';
 import Button from 'flarum/common/components/Button';
+import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import EditDocModal from './EditDocModal';
 
-export default class DocPage extends Component {
-    init() {
-        this.doc = null;
-        this.category = null;
-        this.loading = true;
-
-        this.load();
-    }
-
-    load() {
-        this.loading = true;
-        this.update();
-
-        app.store.find('docs', this.props.doc, {include: 'category'})
-            .then(doc => {
-                this.doc = doc;
-                this.category = doc.category();
-                this.loading = false;
-                this.update();
-            })
-            .catch(() => {
-                m.route.set(app.route('docs'));
-            });
-    }
-
-    view() {
-        if (this.loading || !this.doc || !this.category) {
-            return <div className="container">
-                <LoadingIndicator />
-            </div>;
-        }
-
-        return (
-            <div className="container docs-doc-page">
-                <div className="row">
-                    <div className="col-md-3">
-                        <div className="docs-sidebar">
-                            <h3>{this.category.title()}</h3>
-                            <ul className="nav nav-pills nav-stacked">
-                                <li>
-                                    <a href={app.route('docs.category', {category: this.category.slug()})}>&larr; {app.translator.trans('phpcmf-docs.forum.doc.back_to_category')}</a>
-                                </li>
-                                {this.category.docs().map(doc => (
-                                    <li key={doc.id()} className={doc.id() === this.doc.id() ? 'active' : ''}>
-                                        <a href={app.route('docs.doc', {category: this.category.slug(), doc: doc.slug()})}>
-                                            {doc.title()}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="col-md-9">
-                        <div className="docs-content">
-                            <div className="docs-header">
-                                <h1>{this.doc.title()}</h1>
-                                <div className="docs-meta">
-                                    <span className="docs-author">
-                                        {app.translator.trans('phpcmf-docs.forum.doc.by_author', {
-                                            author: this.doc.author().displayName()
-                                        })}
-                                    </span>
-                                    <span className="docs-updated">
-                                        {app.translator.trans('phpcmf-docs.forum.doc.last_updated', {
-                                            date: moment(this.doc.updatedAt()).format('LL')
-                                        })}
-                                    </span>
-                                    {this.doc.canEdit() ? (
-                                        <Button 
-                                            href={app.route('admin') + '/docs/edit/' + this.doc.id()} 
-                                            icon="fas fa-edit" 
-                                            className="btn btn-primary btn-sm pull-right"
-                                        >
-                                            {app.translator.trans('phpcmf-docs.forum.doc.edit')}
-                                        </Button>
-                                    ) : null}
-                                </div>
-                            </div>
-                            
-                            <div className="docs-body">
-                                {app.forum.attribute('phpcmf-docs.enableMarkdown') ? (
-                                    <div className="Markdown">{Markdown.parse(this.doc.content())}</div>
-                                ) : (
-                                    <div v-html={this.doc.content()} />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    documentMeta() {
-        if (!this.doc) return null;
-
-        return <DocumentMeta title={this.doc.title()} description={this.doc.content().substring(0, 150)} />;
-    }
-}
+export default class DocPage extends Page {
+  oninit(vnode) {
+    super.oninit(vnode);
     
+    this.loading = true;
+    this.doc = null;
+    
+    this.loadDoc();
+  }
+  
+  loadDoc() {
+    const id = m.route.param('id');
+    
+    this.loading = true;
+    m.redraw();
+    
+    app.request({
+      method: 'GET',
+      url: app.forum.attribute('apiUrl') + '/docs/' + id,
+    }).then(result => {
+      this.doc = result.data;
+      this.loading = false;
+      m.redraw();
+    }).catch(() => {
+      this.loading = false;
+      m.redraw();
+    });
+  }
+  
+  view() {
+    if (this.loading) {
+      return <LoadingIndicator />;
+    }
+    
+    if (!this.doc) {
+      return (
+        <div className="DocPage">
+          <div className="container">
+            <p>{app.translator.trans('phpcmf-docs.forum.doc.not_found')}</p>
+          </div>
+        </div>
+      );
+    }
+    
+    const canEdit = app.session.user && (
+      app.session.user.can('docs.edit') || 
+      (app.session.user.can('docs.editOwn') && this.doc.relationships.user.data.id === app.session.user.id)
+    );
+    
+    return (
+      <div className="DocPage">
+        <div className="container">
+          <div className="DocPage-header">
+            <h2>{this.doc.attributes.title}</h2>
+            
+            {canEdit && (
+              <div className="DocPage-actions">
+                <Button 
+                  className="Button Button--primary" 
+                  onclick={() => app.modal.show(EditDocModal, { doc: this.doc })}
+                >
+                  {app.translator.trans('phpcmf-docs.forum.doc.edit')}
+                </Button>
+                
+                <Button 
+                  className="Button Button--danger" 
+                  onclick={this.delete.bind(this)}
+                >
+                  {app.translator.trans('phpcmf-docs.forum.doc.delete')}
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          <div className="DocPage-content">
+            {m.trust(this.doc.attributes.content)}
+          </div>
+          
+          <div className="DocPage-meta">
+            {app.translator.trans('phpcmf-docs.forum.doc.created_at', {
+              date: humanTime(this.doc.attributes.createdAt)
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  delete() {
+    if (!confirm(app.translator.trans('phpcmf-docs.forum.doc.delete_confirmation'))) {
+      return;
+    }
+    
+    app.request({
+      method: 'DELETE',
+      url: `${app.forum.attribute('apiUrl')}/docs/${this.doc.id}`,
+    }).then(() => {
+      app.alerts.show(
+        { type: 'success' },
+        app.translator.trans('phpcmf-docs.forum.doc.deleted')
+      );
+      m.route.set('/docs');
+    });
+  }
+}
