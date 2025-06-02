@@ -1,12 +1,17 @@
-import SettingsPage from 'flarum/components/SettingsPage';
+import app from 'flarum/admin/app';
+import ExtensionPage from 'flarum/admin/components/ExtensionPage';
 
-export default class DocsSettingsPage extends SettingsPage {
+export default class DocsSettingsPage extends ExtensionPage {
   oninit(vnode) {
     super.oninit(vnode);
     
-    this.setting('phpcmf-docs.show_docs_link', true);
-    this.setting('phpcmf-docs.docs_title', 'Documentation');
-    this.setting('phpcmf-docs.docs_description', 'Welcome to our documentation');
+    this.setting = this.setting.bind(this);
+    
+    this.settings = {
+      show_docs_link: this.setting('phpcmf-docs.show_docs_link', true),
+      docs_title: this.setting('phpcmf-docs.docs_title', 'Documentation'),
+      docs_description: this.setting('phpcmf-docs.docs_description', 'Welcome to our documentation')
+    };
   }
 
   content() {
@@ -20,7 +25,7 @@ export default class DocsSettingsPage extends SettingsPage {
           <input
             className="FormControl"
             type="checkbox"
-            bidi={this.setting('phpcmf-docs.show_docs_link')}
+            bidi={this.settings.show_docs_link}
           />
         </div>
         
@@ -28,7 +33,7 @@ export default class DocsSettingsPage extends SettingsPage {
           <label>{app.translator.trans('phpcmf-docs.admin.settings.docs_title')}</label>
           <input
             className="FormControl"
-            bidi={this.setting('phpcmf-docs.docs_title')}
+            bidi={this.settings.docs_title}
           />
         </div>
         
@@ -36,19 +41,12 @@ export default class DocsSettingsPage extends SettingsPage {
           <label>{app.translator.trans('phpcmf-docs.admin.settings.docs_description')}</label>
           <textarea
             className="FormControl"
-            bidi={this.setting('phpcmf-docs.docs_description')}
+            bidi={this.settings.docs_description}
             rows="3"
           />
         </div>
         
-        <div className="Form-group">
-          <button
-            type="submit"
-            className="Button Button--primary"
-          >
-            {app.translator.trans('phpcmf-docs.admin.settings.submit_button')}
-          </button>
-        </div>
+        {this.submitButton()}
       </div>
     );
   }
