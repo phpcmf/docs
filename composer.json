@@ -1,0 +1,34 @@
+{
+    "name": "phpcmf/docs",
+    "description": "Flarum 文档扩展",
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "flarum/core": "^1.8.10"
+    },
+    "authors": [
+        {
+            "name": "PHPCMF",
+            "email": "contact@phpcmf.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Phpcmf\\Docs\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "文档",
+            "icon": {
+                "name": "fas fa-book",
+                "backgroundColor": "#5b83ad",
+                "color": "#fff"
+            }
+        },
+        "flagrow": {
+            "discuss": ""
+        }
+    }
+}
+    

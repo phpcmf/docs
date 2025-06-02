@@ -1,0 +1,57 @@
+phpcmf-docs:
+  forum:
+    nav:
+      docs: Docs
+    docs:
+      title: Documentation
+      no_categories: There are no documentation categories yet.
+      no_docs: There are no documents in this category yet.
+      create_category: Create a category
+    category:
+      sidebar_title: Category Navigation
+      back_to_docs: Back to all docs
+      docs_list: Documents in this category
+      no_docs: No documents found in this category.
+      create_doc: Create a new document
+    doc:
+      back_to_category: Back to category
+      by_author: "By {author}"
+      last_updated: "Last updated: {date}"
+      edit: Edit this document
+  admin:
+    title: Documentation Manager
+    tabs:
+      categories: Categories
+      docs: Documents
+    create_category: Create Category
+    create_doc: Create Document
+    edit_category:
+      title: Edit Category
+      title_label: Title
+      slug_label: Slug
+      description_label: Description
+      published_label: Published
+      order_label: Order
+    edit_doc:
+      title: Edit Document
+      title_label: Title
+      slug_label: Slug
+      category_label: Category
+      content_label: Content
+      content_placeholder: Enter your document content here...
+      published_label: Published
+      order_label: Order
+    save_changes: Save Changes
+    category_saved: Category saved successfully!
+    doc_saved: Document saved successfully!
+    confirm_delete_category: Are you sure you want to delete this category? All documents in this category will also be deleted.
+    confirm_delete_doc: Are you sure you want to delete this document?
+    status:
+      published: Published
+      draft: Draft
+    actions:
+      edit: Edit
+      delete: Delete
+    settings:
+      title: Docs Settings
+      enable_markdown: Enable Markdown parsing for document content
